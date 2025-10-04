@@ -2,6 +2,7 @@ from fastapi import APIRouter, FastAPI, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 from app.config import  Settings,APP_CONFIG
 from app.shared.dependencies import get_settings
 
@@ -37,15 +38,15 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 @app.get('/', tags=['root'])
 async def root() -> dict:
     '''' Root path get function
-    :return: {'msg': 'Gigspace API'}
+    :return: {'msg': 'SMART SHOPPING LIST API'}
     '''
-    return {'msg': 'API from Gigpace'}
+    return {'msg': 'SMART SHOPPING LIST API'}
 
-@app.get('/db', tags=['root'])
-async def get_db(
-        settings: Settings = Depends(get_settings)
-    ) -> dict:
-    return { 'db': settings.db_engine }
+# @app.get('/db', tags=['root'])
+# async def get_db(
+#         settings: Settings = Depends(get_settings)
+#     ) -> dict:
+#     return { 'db': settings.db_engine }
 
 api_v1_router = APIRouter(prefix="/api")
 
@@ -53,4 +54,6 @@ api_v1_router = APIRouter(prefix="/api")
 api_v1_router.include_router(items.router)
 
 app.include_router(api_v1_router)
+
+handler = Mangum(app, lifespan="off") 
 
