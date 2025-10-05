@@ -18,7 +18,7 @@ origins = [
     "http://localhost:8080",
     "https://www.harshad.shop",
     "https://harshad.shop",
-    "http://localhost:3000",
+    "http://www.harshad.shop",
 ]
 app = FastAPI(**APP_CONFIG)
 
