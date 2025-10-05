@@ -81,15 +81,6 @@ jobs:
           aws lambda wait function-updated \
             --function-name ${{ env.LAMBDA_FUNCTION_NAME }}
 
-      - name: Update Lambda configuration
-        run: |
-          aws lambda update-function-configuration \
-            --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
-            --handler app.main.handler \
-            --environment Variables="{ENVIRONMENT=production}" \
-            --timeout 30 \
-            --memory-size 512
-            # Adjust timeout and memory as needed
 
       - name: Publish Lambda version
         run: |
