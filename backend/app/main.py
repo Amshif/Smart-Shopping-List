@@ -16,6 +16,9 @@ from app.routers import items
 
 origins = [
     "http://localhost:8080",
+    "https://www.harshad.shop",
+    "https://harshad.shop",
+    "http://localhost:3000",
 ]
 app = FastAPI(**APP_CONFIG)
 
