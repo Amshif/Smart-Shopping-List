@@ -1,0 +1,85 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      # - name: Run tests
+      #   working-directory: ./frontend
+      #   run: npm test
+      #   continue-on-error: false
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          # Add your environment variables here
+          VITE_API_BASE_URL: ${{ secrets.API_URL }}
+          # Or for Vite: VITE_API_URL: ${{ secrets.API_URL }}
+          # Or for Next.js: NEXT_PUBLIC_API_URL: ${{ secrets.API_URL }}
+
+      # Option 1: Deploy to AWS S3 + CloudFront
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: 
+
+      - name: Deploy to S3
+        working-directory: ./frontend
+        run: |
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
+          # For Next.js use: aws s3 sync out/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      # Option 2: Uncomment below to deploy to Vercel instead
+      # - name: Deploy to Vercel
+      #   working-directory: ./frontend
+      #   run: |
+      #     npm install -g vercel
+      #     vercel --token ${{ secrets.VERCEL_TOKEN }} --prod
+
+      # Option 3: Uncomment below to deploy to Netlify instead
+      # - name: Deploy to Netlify
+      #   uses: nwtgck/actions-netlify@v2
+      #   with:
+      #     publish-dir: './frontend/build'
+      #     production-deploy: true
+      #   env:
+      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Deployment Success
+        run: echo "Frontend deployed successfully!"
